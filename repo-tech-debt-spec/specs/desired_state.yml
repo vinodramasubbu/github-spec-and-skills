@@ -1,0 +1,150 @@
+# Desired State Specification
+# This file defines the expected standards for the platform.
+# The agent treats this file as the source of truth for all drift detection.
+
+runtime:
+  java:
+    minimum_version: "17"
+    allowed_versions:
+      - "17"
+      - "21"
+    deprecated_versions:
+      - "8"
+      - "11"
+      - "16"
+
+  node:
+    minimum_version: "18"
+    allowed_versions:
+      - "18"
+      - "20"
+      - "22"
+    deprecated_versions:
+      - "12"
+      - "14"
+      - "16"
+
+  python:
+    minimum_version: "3.10"
+    allowed_versions:
+      - "3.10"
+      - "3.11"
+      - "3.12"
+    deprecated_versions:
+      - "2.7"
+      - "3.6"
+      - "3.7"
+      - "3.8"
+      - "3.9"
+
+frameworks:
+  spring_boot:
+    minimum_version: "3.1.0"
+    allowed_versions:
+      - "3.1.x"
+      - "3.2.x"
+      - "3.3.x"
+    deprecated_versions:
+      - "2.x"
+      - "1.x"
+
+  quarkus:
+    minimum_version: "3.0.0"
+    deprecated_versions:
+      - "1.x"
+      - "2.x"
+
+  micronaut:
+    minimum_version: "4.0.0"
+    deprecated_versions:
+      - "1.x"
+      - "2.x"
+      - "3.x"
+
+  django:
+    minimum_version: "4.2"
+    deprecated_versions:
+      - "2.x"
+      - "3.x"
+
+  flask:
+    minimum_version: "3.0.0"
+    deprecated_versions:
+      - "1.x"
+      - "2.x"
+
+build_tools:
+  maven:
+    minimum_version: "3.9.0"
+    deprecated_versions:
+      - "3.6.x"
+      - "3.7.x"
+      - "3.8.x"
+
+  gradle:
+    minimum_version: "8.0"
+    deprecated_versions:
+      - "6.x"
+      - "7.x"
+
+  npm:
+    minimum_version: "9.0.0"
+    deprecated_versions:
+      - "6.x"
+      - "7.x"
+      - "8.x"
+
+dependencies:
+  banned_libraries:
+    - name: "log4j"
+      reason: "Critical security vulnerabilities (Log4Shell). Migrate to SLF4J + Logback or Log4j2."
+    - name: "commons-collections"
+      versions_below: "3.2.2"
+      reason: "Deserialization vulnerabilities."
+    - name: "jackson-databind"
+      versions_below: "2.14.0"
+      reason: "Multiple CVEs in older versions."
+    - name: "spring-security"
+      versions_below: "6.0.0"
+      reason: "Multiple CVEs; upgrade to spring-security 6.x with Spring Boot 3.x."
+
+  maximum_dependency_age_days: 730   # 2 years
+
+  security:
+    vulnerability_threshold:
+      critical: 0     # Zero tolerance for critical CVEs
+      high: 0         # Zero tolerance for high CVEs
+      medium: 5       # Up to 5 medium CVEs allowed before action required
+      low: 10         # Up to 10 low CVEs allowed before action required
+    advisory_sources:
+      - "OSV"
+      - "NVD"
+      - "GitHub Advisory Database"
+
+  approved_registries:
+    - "https://repo.maven.apache.org/maven2"
+    - "https://plugins.gradle.org/m2"
+    - "https://registry.npmjs.org"
+    - "https://pypi.org/simple"
+
+platform:
+  required_configurations:
+    - ".gitignore"
+    - "Dockerfile"
+    - ".github/workflows"
+
+  disallowed_tools:
+    - name: "Ant"
+      reason: "Replaced by Maven/Gradle. No longer approved as primary build tool."
+    - name: "SVN"
+      reason: "Source control must use Git."
+
+  ci_cd:
+    required_checks:
+      - "unit-tests"
+      - "security-scan"
+      - "dependency-audit"
+    allowed_providers:
+      - "GitHub Actions"
+      - "Jenkins"
+      - "Azure DevOps"

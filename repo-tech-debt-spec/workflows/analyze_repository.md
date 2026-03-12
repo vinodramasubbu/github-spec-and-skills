@@ -163,7 +163,37 @@ This workflow can be triggered:
 
 ---
 
-### Step 8: Evaluate Exit Condition
+### Step 8: AI Summary (Optional)
+
+**Skill:** [`summarize_with_claude`](../skills/summarize_with_claude.md)
+
+**Condition:** Only executed when the `ANTHROPIC_API_KEY` environment variable is set.
+
+**Input:**
+- `issue_summary` (from Step 7)
+- `runtime_issues` (from Step 4)
+- `vulnerabilities` (from Step 5)
+- `security_issues` (from Step 5)
+- `banned_library_issues` (from Step 5)
+- `framework_issues` (from Step 6)
+- `build_tool_issues` (from Step 6)
+- `platform_drift_issues` (from Step 6)
+- `repository_name` (derived from `repository_path`)
+- `report_date` (current UTC date in ISO 8601 format)
+
+**Output:**
+- `ai_summary`
+- `risk_rating`
+- `top_priorities`
+- `model_used`
+
+**Error handling:**
+- If `ANTHROPIC_API_KEY` is not set, skip this step silently and continue to Step 9.
+- If the Claude API call fails, log a warning and continue to Step 9 without an AI summary.
+
+---
+
+### Step 9: Evaluate Exit Condition
 
 After generating the report, evaluate the following conditions using `issue_summary`:
 
@@ -212,8 +242,14 @@ After generating the report, evaluate the following conditions using `issue_summ
 │    Step 7: Generate Report      │
 └────────────────┬────────────────┘
                  │
+┌────────────────▼────────────────────┐
+│ Step 8: AI Summary (Claude)         │
+│         [optional — skipped if      │
+│          ANTHROPIC_API_KEY not set] │
+└────────────────┬────────────────────┘
+                 │
 ┌────────────────▼────────────────┐
-│  Step 8: Evaluate Exit Condition│
+│  Step 9: Evaluate Exit Condition│
 └─────────────────────────────────┘
 ```
 
@@ -221,7 +257,7 @@ After generating the report, evaluate the following conditions using `issue_summ
 
 | Output | Description |
 |--------|-------------|
-| `outputs/tech_debt_report.md` | Full technical debt report in Markdown format. |
+| `outputs/tech_debt_report.md` | Full technical debt report in Markdown format, including an AI summary section when Claude is available. |
 | Exit code `0` | Analysis succeeded; no threshold-breaching issues found. |
 | Exit code `1` | High-severity issues found (when `fail_on_high` is `true`). |
 | Exit code `2` | Critical issues found (when `fail_on_critical` is `true`). |
